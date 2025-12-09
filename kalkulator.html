@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -14,6 +15,7 @@ label { font-weight: bold; }
 input, select { padding: 7px; margin: 5px 0; width: 200px; }
 button { padding: 10px 15px; margin-top: 10px; }
 #hasil { margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; }
+.hidden { display: none; }
 </style>
 </head>
 
@@ -38,24 +40,21 @@ button { padding: 10px 15px; margin-top: 10px; }
     <br>
     <label>Satuan Nilai 1:</label><br>
 
-    <!-- Satuan Jarak -->
-    <select id="u1_dist">
+    <select id="u1_dist" class="hidden">
         <option value="">--Jarak--</option>
         <option value="km">Kilometer</option>
         <option value="m">Meter</option>
         <option value="cm">Centimeter</option>
     </select>
 
-    <!-- Satuan Waktu -->
-    <select id="u1_time">
+    <select id="u1_time" class="hidden">
         <option value="">--Waktu--</option>
         <option value="s">Detik</option>
         <option value="min">Menit</option>
         <option value="h">Jam</option>
     </select>
 
-    <!-- Satuan Kecepatan -->
-    <select id="u1_speed">
+    <select id="u1_speed" class="hidden">
         <option value="">--Kecepatan--</option>
         <option value="ms">m/s</option>
         <option value="kmh">km/jam</option>
@@ -71,24 +70,21 @@ button { padding: 10px 15px; margin-top: 10px; }
     <br>
     <label>Satuan Nilai 2:</label><br>
 
-    <!-- Satuan Jarak -->
-    <select id="u2_dist">
+    <select id="u2_dist" class="hidden">
         <option value="">--Jarak--</option>
         <option value="km">Kilometer</option>
         <option value="m">Meter</option>
         <option value="cm">Centimeter</option>
     </select>
 
-    <!-- Satuan Waktu -->
-    <select id="u2_time">
+    <select id="u2_time" class="hidden">
         <option value="">--Waktu--</option>
         <option value="s">Detik</option>
         <option value="min">Menit</option>
         <option value="h">Jam</option>
     </select>
 
-    <!-- Kecepatan -->
-    <select id="u2_speed">
+    <select id="u2_speed" class="hidden">
         <option value="">--Kecepatan--</option>
         <option value="ms">m/s</option>
         <option value="kmh">km/jam</option>
@@ -120,83 +116,95 @@ def speed_to_mps(v, u):
 def mps_to_text(v):
     return f"{v:.3f} m/s  |  {(v*3.6):.3f} km/jam"
 
-def get_unit(group1, group2, group3):
-    for g in (group1, group2, group3):
-        if document[g].value != "":
-            return document[g].value
-    return None
-
 #------------------------------------------
-# FUNGSI UPDATE LABEL OTOMATIS
+# Menyembunyikan semua dropdown satuan
 #------------------------------------------
 
-def update_labels(ev=None):
+def hide_all():
+    for id in [
+        "u1_dist","u1_time","u1_speed",
+        "u2_dist","u2_time","u2_speed"
+    ]:
+        document[id].class_name = "hidden"
+
+#------------------------------------------
+# Menampilkan dropdown sesuai mode
+#------------------------------------------
+
+def show(elem): 
+    document[elem].class_name = ""
+
+def update_ui(ev=None):
+    hide_all()
     mode = document["mode"].value
 
-    if mode == "distance":  # jarak = kecepatan × waktu
+    if mode == "speed":
+        document["label1"].text = "Input 1: Jarak"
+        document["label2"].text = "Input 2: Waktu"
+
+        show("u1_dist")
+        show("u2_time")
+
+    elif mode == "distance":
         document["label1"].text = "Input 1: Kecepatan"
         document["label2"].text = "Input 2: Waktu"
 
-    elif mode == "speed":  # kecepatan = jarak ÷ waktu
-        document["label1"].text = "Input 1: Jarak"
-        document["label2"].text = "Input 2: Waktu"
+        show("u1_speed")
+        show("u2_time")
 
-    elif mode == "time":   # waktu = jarak ÷ kecepatan
+    elif mode == "time":
         document["label1"].text = "Input 1: Jarak"
         document["label2"].text = "Input 2: Kecepatan"
 
-# panggil pertama kali
-update_labels()
+        show("u1_dist")
+        show("u2_speed")
 
-document["mode"].bind("change", update_labels)
+update_ui()
+document["mode"].bind("change", update_ui)
 
 #------------------------------------------
-# LOGIKA PERHITUNGAN
+# Mengambil unit terpilih
+#------------------------------------------
+
+def get_selected(prefix):
+    for t in ("dist","time","speed"):
+        if document[f"{prefix}_{t}"].class_name == "":
+            return document[f"{prefix}_{t}"].value
+    return None
+
+#------------------------------------------
+# Perhitungan
 #------------------------------------------
 
 def hitung(ev):
+
     mode = document["mode"].value
     v1 = float(document["value1"].value)
     v2 = float(document["value2"].value)
 
-    u1 = get_unit("u1_dist", "u1_time", "u1_speed")
-    u2 = get_unit("u2_dist", "u2_time", "u2_speed")
+    u1 = get_selected("u1")
+    u2 = get_selected("u2")
 
-    # -------- HITUNG KECEPATAN -------- #
+    # KECEPATAN = JARAK / WAKTU
     if mode == "speed":
-        d = dist_to_m(v1, u1) or dist_to_m(v2, u2)
-        t = time_to_s(v1, u1) or time_to_s(v2, u2)
-
-        if d is None or t is None:
-            document["hasil"].text = "Masukkan JARAK dan WAKTU yang benar."
-            return
-
+        d = dist_to_m(v1, u1)
+        t = time_to_s(v2, u2)
         speed = d / t
         document["hasil"].text = "Kecepatan = " + mps_to_text(speed)
         return
 
-    # -------- HITUNG JARAK -------- #
+    # JARAK = KECEPATAN × WAKTU
     if mode == "distance":
-        s = speed_to_mps(v1, u1) or speed_to_mps(v2, u2)
-        t = time_to_s(v1, u1) or time_to_s(v2, u2)
-
-        if s is None or t is None:
-            document["hasil"].text = "Masukkan KECEPATAN dan WAKTU yang benar."
-            return
-
+        s = speed_to_mps(v1, u1)
+        t = time_to_s(v2, u2)
         d = s * t
         document["hasil"].text = f"Jarak = {d:.3f} m  |  {d/1000:.3f} km"
         return
 
-    # -------- HITUNG WAKTU -------- #
+    # WAKTU = JARAK / KECEPATAN
     if mode == "time":
-        d = dist_to_m(v1, u1) or dist_to_m(v2, u2)
-        s = speed_to_mps(v1, u1) or speed_to_mps(v2, u2)
-
-        if d is None or s is None:
-            document["hasil"].text = "Masukkan JARAK dan KECEPATAN yang benar."
-            return
-
+        d = dist_to_m(v1, u1)
+        s = speed_to_mps(v2, u2)
         t = d / s
         document["hasil"].text = f"Waktu = {t:.3f} detik | {t/60:.3f} menit | {t/3600:.3f} jam"
         return
