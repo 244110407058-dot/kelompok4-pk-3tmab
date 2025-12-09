@@ -1,0 +1,157 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Kalkulator Jarak Waktu Kecepatan - Python Brython</title>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.11.0/brython.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.11.0/brython_stdlib.js"></script>
+
+    <style>
+        body { font-family: Arial; max-width: 700px; margin: 30px auto; padding: 20px; }
+        select, input { padding: 8px; margin: 6px 0; width: 200px; }
+        button { padding: 10px 15px; margin-top: 10px; }
+        .box { padding: 15px; background: #f0f0f0; border-radius: 8px; }
+        #hasil { margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; font-size: 18px; }
+    </style>
+</head>
+
+<body onload="brython()">
+
+<h2>Kalkulator Jarak • Waktu • Kecepatan (Python + Brython)</h2>
+
+<div class="box">
+
+    <label>Pilih yang ingin dihitung:</label><br>
+    <select id="mode">
+        <option value="speed">Kecepatan</option>
+        <option value="distance">Jarak</option>
+        <option value="time">Waktu</option>
+    </select>
+    <br><br>
+
+    <label>Input nilai 1:</label><br>
+    <input id="value1" type="number" step="any"><br>
+    <select id="unit1">
+        <option value="km">Kilometer (km)</option>
+        <option value="m">Meter (m)</option>
+        <option value="cm">Centimeter (cm)</option>
+        <option value="s">Detik (s)</option>
+        <option value="min">Menit (min)</option>
+        <option value="h">Jam (h)</option>
+        <option value="ms">m/s</option>
+        <option value="kmh">km/jam</option>
+        <option value="cms">cm/s</option>
+    </select>
+
+    <br><br>
+
+    <label>Input nilai 2:</label><br>
+    <input id="value2" type="number" step="any"><br>
+    <select id="unit2">
+        <option value="km">Kilometer (km)</option>
+        <option value="m">Meter (m)</option>
+        <option value="cm">Centimeter (cm)</option>
+        <option value="s">Detik (s)</option>
+        <option value="min">Menit (min)</option>
+        <option value="h">Jam (h)</option>
+        <option value="ms">m/s</option>
+        <option value="kmh">km/jam</option>
+        <option value="cms">cm/s</option>
+    </select>
+
+    <br><br>
+    <button id="hitung">Hitung</button>
+</div>
+
+<div id="hasil">Hasil akan tampil di sini.</div>
+
+<script type="text/python">
+
+from browser import document
+
+# --------------------
+# KONVERSI SATUAN
+# --------------------
+
+def dist_to_m(v, u):
+    if u == "km": return v * 1000
+    if u == "m": return v
+    if u == "cm": return v / 100
+    return None
+
+def time_to_s(v, u):
+    if u == "h": return v * 3600
+    if u == "min": return v * 60
+    if u == "s": return v
+    return None
+
+def speed_to_mps(v, u):
+    if u == "ms": return v
+    if u == "kmh": return v * 1000 / 3600
+    if u == "cms": return v / 100
+    return None
+
+def mps_to_output(v):
+    """Output ke dua bentuk otomatis."""
+    return f"{v:.3f} m/s   atau   {(v*3.6):.3f} km/jam"
+
+# --------------------
+# PROSES HITUNG
+# --------------------
+
+def hitung(ev):
+    mode = document["mode"].value
+    v1 = float(document["value1"].value)
+    v2 = float(document["value2"].value)
+    u1 = document["unit1"].value
+    u2 = document["unit2"].value
+
+    # ----- HITUNG KECEPATAN -----
+    if mode == "speed":
+        d = dist_to_m(v1, u1) if dist_to_m(v1, u1) is not None else dist_to_m(v2, u2)
+        t = time_to_s(v1, u1) if time_to_s(v1, u1) is not None else time_to_s(v2, u2)
+
+        if d is None or t is None:
+            document["hasil"].text = "Masukkan JARAK dan WAKTU."
+            return
+
+        speed = d / t
+        document["hasil"].text = f"Kecepatan = {mps_to_output(speed)}"
+        return
+
+    # ----- HITUNG JARAK -----
+    if mode == "distance":
+        sp = speed_to_mps(v1, u1) if speed_to_mps(v1, u1) is not None else speed_to_mps(v2, u2)
+        t = time_to_s(v1, u1) if time_to_s(v1, u1) is not None else time_to_s(v2, u2)
+
+        if sp is None or t is None:
+            document["hasil"].text = "Masukkan KECEPATAN dan WAKTU."
+            return
+
+        d = sp * t
+        document["hasil"].text = f"Jarak = {d:.3f} m   atau   {d/1000:.3f} km"
+        return
+
+    # ----- HITUNG WAKTU -----
+    if mode == "time":
+        d = dist_to_m(v1, u1) if dist_to_m(v1, u1) is not None else dist_to_m(v2, u2)
+        sp = speed_to_mps(v1, u1) if speed_to_mps(v1, u1) is not None else speed_to_mps(v2, u2)
+
+        if d is None or sp is None:
+            document["hasil"].text = "Masukkan JARAK dan KECEPATAN."
+            return
+
+        t = d / sp
+        document["hasil"].text = f"Waktu = {t:.3f} detik   atau   {t/60:.3f} menit   atau   {t/3600:.3f} jam"
+        return
+
+
+document["hitung"].bind("click", hitung)
+
+</script>
+
+</body>
+</html>
