@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Kalkulator Jarak Waktu Kecepatan</title>
+
+<script src="https://cdn.jsdelivr.net/npm/brython@3.11.0/brython.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/brython@3.11.0/brython_stdlib.js"></script>
+
+<style>
+    body { font-family: Arial; max-width: 700px; margin: 20px auto; padding: 20px; }
+    .box { background: #f2f2f2; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    select, input { padding: 7px; margin: 5px 0; width: 200px; }
+    button { padding: 10px 15px; margin-top: 10px; }
+    #hasil { margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; }
+</style>
+</head>
+
+<body onload="brython()">
+
+<h2>Kalkulator Jarak • Waktu • Kecepatan (Otomatis Sesuai Rumus)</h2>
+
+<div class="box">
+    <label>Pilih Perhitungan:</label><br>
+    <select id="mode">
+        <option value="speed">Hitung Kecepatan ( Jarak / Waktu)</option>
+        <option value="distance">Hitung Jarak ( Kecepatan × Waktu)</option>
+        <option value="time">Hitung Waktu ( Jarak / Kecepatan)</option>
+    </select>
+</div>
+
+<!-- INPUT 1 -->
+<div class="box">
+    <h3>Input 1</h3>
+    <input id="value1" type="number" step="any">
+    <br>
+    <label>Satuan Input 1:</label><br>
+    <select id="unit1"></select>
+</div>
+
+<!-- INPUT 2 -->
+<div class="box">
+    <h3>Input 2</h3>
+    <input id="value2" type="number" step="any">
+    <br>
+    <label>Satuan Input 2:</label><br>
+    <select id="unit2"></select>
+</div>
+
+<button id="hitung">Hitung</button>
+
+<div id="hasil">Hasil akan muncul di sini...</div>
+
+<script type="text/python">
+
+from browser import document, html
+
+#----------------------------------------------------------
